@@ -29,5 +29,5 @@ echo "Ansible is ready. Running the playbook to configure the environment..."
 # -l local limits the playbook run to the 'local' group in your inventory
 ansible-playbook -i inventory.ini playbook.yml --ask-become-pass -l local
 
-echo "✅ WSL environment setup is complete!"
+echo "✅ environment setup is complete!"
 echo "   Run 'source ~/.bashrc' or open a new terminal to use nvm and node."
