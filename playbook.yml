@@ -95,6 +95,7 @@
       ansible.builtin.shell: >
         source /home/{{ ansible_user }}/.nvm/nvm.sh && nvm install node
       args:
+        executable: /bin/bash
         # Check if 'node' alias exists to avoid re-installing
         creates: "/home/{{ ansible_user }}/.nvm/alias/default"
       become: false # Run as the user
