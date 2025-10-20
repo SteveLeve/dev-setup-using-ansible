@@ -76,6 +76,21 @@
       when: not nvm_stat.stat.exists
       become: false # Run as the user
 
+    - name: Add NVM sourcing to .bashrc to make it available in new shells
+      ansible.builtin.blockinfile:
+        path: "/home/{{ ansible_user }}/.bashrc"
+        create: true
+        marker: "# {mark} ANSIBLE MANAGED BLOCK NVM"
+        block: |
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+      become: false # Run as the user
+      when: not nvm_stat.stat.exists # Only run when NVM is first installed
+      # This block ensures that when you open a new terminal, 'nvm' is ready to use.
+      # The playbook still needs to source nvm.sh manually for subsequent tasks
+      # in this same run, as .bashrc is not re-read.
+
     - name: Install the latest version of Node.js using NVM
       ansible.builtin.shell: >
         source /home/{{ ansible_user }}/.nvm/nvm.sh && nvm install node
