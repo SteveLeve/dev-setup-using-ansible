@@ -12,6 +12,7 @@
         name:
           - curl
           - git
+          - unzip
           - python3-pip
           - ca-certificates
           - gnupg
@@ -60,6 +61,119 @@
         groups: docker
         append: true
       # This allows running 'docker' commands without 'sudo'
+
+    # --- Git (ensure latest) ---
+    - name: Ensure Git is installed (latest)
+      ansible.builtin.apt:
+        name: git
+        state: latest
+        update_cache: false
+
+    # --- GitHub CLI Installation ---
+    - name: Add GitHub CLI repository GPG key
+      ansible.builtin.get_url:
+        url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+        dest: /usr/share/keyrings/githubcli-archive-keyring.gpg
+        mode: '0644'
+
+    - name: Add GitHub CLI repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+        state: present
+        filename: github-cli
+
+    - name: Install GitHub CLI
+      ansible.builtin.apt:
+        name: gh
+        state: latest
+        update_cache: true
+
+    # --- AWS CLI v2 (official installer) ---
+    - name: Ensure any AWS CLI v1 (apt) is removed
+      ansible.builtin.apt:
+        name: awscli
+        state: absent
+        purge: true
+
+    - name: Check if AWS CLI v2 is already installed
+      ansible.builtin.stat:
+        path: /usr/local/bin/aws
+      register: awscli_v2_stat
+
+    - name: Determine AWS CLI v2 download URL for architecture
+      ansible.builtin.set_fact:
+        aws_cli_v2_url: >-
+          {{ 'https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip' if ansible_architecture in ['aarch64','arm64']
+             else 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' }}
+
+    - name: Download AWS CLI v2 bundle
+      ansible.builtin.get_url:
+        url: "{{ aws_cli_v2_url }}"
+        dest: /tmp/awscliv2.zip
+        mode: '0644'
+      when: not awscli_v2_stat.stat.exists
+
+    - name: Unpack AWS CLI v2 bundle
+      ansible.builtin.unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp
+        remote_src: true
+      when: not awscli_v2_stat.stat.exists
+
+    - name: Install AWS CLI v2
+      ansible.builtin.command:
+        cmd: /tmp/aws/install -i /usr/local/aws-cli -b /usr/local/bin
+        creates: /usr/local/bin/aws
+      when: not awscli_v2_stat.stat.exists
+
+    - name: Cleanup AWS CLI v2 installer files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/awscliv2.zip
+        - /tmp/aws
+      when: awscli_v2_stat.stat.exists == false
+
+    # --- kubectl Installation ---
+    - name: Add Kubernetes apt repository GPG key (dearmored)
+      ansible.builtin.shell: >
+        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key |
+        gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /"
+        state: present
+        filename: kubernetes
+
+    - name: Install kubectl
+      ansible.builtin.apt:
+        name: kubectl
+        state: latest
+        update_cache: true
+
+    # --- Terraform Installation ---
+    - name: Add HashiCorp GPG key (dearmored)
+      ansible.builtin.shell: >
+        curl -fsSL https://apt.releases.hashicorp.com/gpg |
+        gpg --dearmor -o /etc/apt/keyrings/hashicorp-archive-keyring.gpg
+      args:
+        creates: /etc/apt/keyrings/hashicorp-archive-keyring.gpg
+
+    - name: Add HashiCorp apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+        filename: hashicorp
+
+    - name: Install Terraform
+      ansible.builtin.apt:
+        name: terraform
+        state: latest
+        update_cache: true
 
     # --- NVM and Node.js Installation ---
     - name: Check if NVM is already installed

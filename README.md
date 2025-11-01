@@ -13,6 +13,11 @@ The Ansible playbook will install and configure the following software:
 -   **Docker**: Installs the latest Docker Engine, CLI, and Docker Compose. It also adds the current user to the `docker` group to allow running Docker commands without `sudo`.
 -   **NVM (Node Version Manager)**: Installs NVM to manage multiple Node.js versions.
 -   **Node.js**: Installs the latest stable version of Node.js using NVM.
+-   **Git (latest)**: Ensures Git is installed and up to date.
+-   **GitHub CLI (gh)**: Adds the official GitHub CLI apt repo and installs `gh`.
+-   **AWS CLI v2**: Installs the official AWS CLI v2 via Amazon's bundled installer (architecture-aware).
+-   **kubectl**: Adds the Kubernetes apt repo and installs the `kubectl` client.
+-   **Terraform**: Adds the HashiCorp apt repo and installs `terraform`.
 
 ## Prerequisites
 
