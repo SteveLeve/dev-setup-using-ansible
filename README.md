@@ -1,6 +1,6 @@
-# WSL / Ubuntu Environment Setup with Ansible
+# Ubuntu Environment Setup with Ansible
 
-This repository contains a set of scripts to automate the setup and configuration of a development environment on a Windows Subsystem for Linux (WSL) instance or any other Ubuntu host using Ansible.
+This repository contains a set of scripts to automate the setup and configuration of a development environment on Ubuntu Linux (inclding WSL) using Ansible.
 
 The goal is to create a consistent, repeatable, and version-controlled process for bootstrapping a machine with essential development tools.
 
@@ -31,7 +31,7 @@ Follow these steps to configure your local machine.
 1.  **Clone the repository:**
     ```bash
     git clone <your-repository-url>
-    cd wsl-ansible-setup
+    cd ansible-setup
     ```
 
 2.  **Make the setup script executable:**
